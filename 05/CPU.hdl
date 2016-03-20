@@ -48,7 +48,7 @@ CHIP CPU {
     Or (a=atValue, b=instruction[5], out=aLoad); // Store value into ARegister if it's a @value or should stored in ARegister
 
     // ARegister
-    ARegister (in=aIn, load=aLoad, out=aOut, out[3]=instructionWriteM, out[15]=cInstruction, out[0..14]=addressM);
+    ARegister (in=aIn, load=aLoad, out=aOut, out[0..14]=addressM);
 
     // Write M?
     And (a=instruction[15], b=instruction[3], out=writeM);
@@ -67,7 +67,7 @@ CHIP CPU {
 
     // DRegister: dOut, aluX
     And (a=instruction[15], b=instruction[4], out=dLoad);
-    DRegister (in=aluOut, load=dLoad, out=dOut, out=aluX, out=DRegister);
+    DRegister (in=aluOut, load=dLoad, out=aluX);
 
     ALU (x=aluX, y=aluY, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, out=outM, zr=zr, ng=ng);
 
