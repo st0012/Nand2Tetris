@@ -39,5 +39,47 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    // Mux16 before ARegister
+    Mux16 (a=instruction, b=aluOut, sel=instruction[15], out=aIn);
+
+    // Whether should load the value from Mux16
+    Not (in=instruction[15], out=atValue); // See if is @value
+    Or (a=atValue, b=instruction[5], out=aLoad); // Store value into ARegister if it's a @value or should stored in ARegister
+
+    // ARegister
+    ARegister (in=aIn, load=aLoad, out=aOut, out[3]=instructionWriteM, out[15]=cInstruction, out[0..14]=addressM);
+
+    // Write M?
+    And (a=instruction[15], b=instruction[3], out=writeM);
+
+
+    // inM or ARrgister?
+    Or8Way (in=inM[0..7], out=inMPresentA);
+    Or8Way (in=inM[8..15], out=inMPresentB);
+    Or (a=inMPresentA, b=inMPresentB, out=inMPresent);
+    Not (in=inMPresent, out=inMBlank);
+
+    // if inM is blank than use ARegister's output
+    Not (in=instruction[12], out=notUseM);
+    Or (a=inMBlank, b=notUseM, out=useARegister);
+    Mux16 (a=inM ,b=aOut, sel=useARegister, out=aluY);
+
+    // DRegister: dOut, aluX
+    And (a=instruction[15], b=instruction[4], out=dLoad);
+    DRegister (in=aluOut, load=dLoad, out=dOut, out=aluX, out=DRegister);
+
+    ALU (x=aluX, y=aluY, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, out=outM, zr=zr, ng=ng);
+
+    // for PC
+    And (a=instruction[2], b=ng, out=jumpLess);
+    And (a=instruction[1], b=zr, out=jumpZero);
+    Or (a=ng, b=zr, out=nonPositiveResult);
+    Not (in=nonPositiveResult, out=positiveResult);
+    And (a=instruction[0], b=positiveResult, out=jumpGreater);
+    Xor (a=jumpGreater, b=jumpZero, out=jumpNonLess);
+    Xor (a=jumpNonLess, b=jumpLess, out=jump);
+    And (a=jump, b=instruction[15], out=realJump);
+    Not (in=realJump, out=notJump);
+    PC (in=aOut, load=realJump, reset=reset, inc=notJump, out[0..14]=pc);
 }
