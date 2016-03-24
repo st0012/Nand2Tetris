@@ -19,22 +19,26 @@ def clean_comments_and_white_spaces(file)
   end.compact
 end
 
+def convert_a_instructions(codes)
+  codes.map do |l|
+    match = l.match(A_INSTRUCTION)
+
+    if match
+      a_instruction = match[0]
+      a_instruction.sub!("@", "")
+      a_instuction_to_bin(a_instruction)
+    else
+      l
+    end
+  end
+end
+
 def a_instuction_to_bin(instruction)
   instruction.to_i.to_s(2).rjust(16, "0")
 end
 
 codes = clean_comments_and_white_spaces(file)
-codes = codes.map do |l|
-  match = l.match(A_INSTRUCTION)
-
-  if match
-    a_instruction = match[0]
-    a_instruction.sub!("@", "")
-    a_instuction_to_bin(a_instruction)
-  else
-    l
-  end
-end
+codes = convert_a_instructions(codes)
 
 binding.pry
 
